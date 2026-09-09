@@ -12,9 +12,6 @@ use crate::sl;
 
 lazy_static! {
     static ref ROOTLESS_STATE: Mutex<bool> = Mutex::new(false);
-    static ref ROOTLESS_DIR: String = env::var("XDG_RUNTIME_DIR")
-        .inspect_err(|_| error!(sl!(), "XDG_RUNTIME_DIR is not set yet"))
-        .unwrap();
 }
 
 /// Set the rootless state of vmm.
@@ -29,7 +26,13 @@ pub fn is_rootless() -> bool {
 
 /// Get the rootless directory's path of rootless vmm.
 pub fn rootless_dir() -> String {
-    ROOTLESS_DIR.clone()
+    match env::var("XDG_RUNTIME_DIR") {
+        Ok(dir) => dir,
+        Err(_) => {
+            error!(sl!(), "XDG_RUNTIME_DIR is not set yet");
+            String::new()
+        }
+    }
 }
 
 #[cfg(test)]
